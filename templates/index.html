@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>CI AI Dashboard</title>
+<style>
+body {
+  font-family: Arial;
+  background:#0b1020;
+  color:white;
+}
+.card {
+  background:#151b2f;
+  padding:20px;
+  margin:20px;
+  border-radius:10px;
+}
+.grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+}
+</style>
+</head>
+<body>
+
+<h1>🚀 CI AI Monitor</h1>
+
+<div class="grid">
+  <div class="card">Total Failures: <span id="total"></span></div>
+  <div class="card">Last Error: <span id="last"></span></div>
+</div>
+
+<div class="card">
+  <h2>Recent AI Reports</h2>
+  <div id="logs"></div>
+</div>
+
+<script>
+fetch("/api/stats").then(r=>r.json()).then(d=>{
+  document.getElementById("total").innerText=d.total
+  document.getElementById("last").innerText=d.last
+})
+
+fetch("/api/logs").then(r=>r.json()).then(d=>{
+  let html=""
+  d.forEach(x=> html+= "<pre>"+x[0]+"</pre>")
+  document.getElementById("logs").innerHTML=html
+})
+</script>
+
+</body>
+</html>
