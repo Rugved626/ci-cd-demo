@@ -25,11 +25,13 @@ jobs:
         run: |
           pytest
 
-      - name: Run AI Debug Agent
+            - name: Run AI Debug Agent
         if: failure()
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          CI_LOG: "CI failed. Check GitHub Actions logs."
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          CI_LOG: "Tests failed in CI pipeline. Check logs."
         run: |
           python agent.py
 
