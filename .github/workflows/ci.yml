@@ -25,7 +25,7 @@ jobs:
         run: |
           pytest
 
-            - name: Run AI Debug Agent
+      - name: Run AI Debug Agent
         if: failure()
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
