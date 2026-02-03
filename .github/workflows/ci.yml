@@ -30,3 +30,11 @@ jobs:
         run: |
           echo "Deploying application..."
           echo "App deployed successfully!"
+
+                - name: Run AI Debug Agent
+        if: failure()
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          CI_LOG: ${{ toJson(steps) }}
+        run: |
+          python agent.py

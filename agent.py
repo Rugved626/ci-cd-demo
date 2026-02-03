@@ -1,52 +1,28 @@
-import requests
 import os
+import requests
 
-GITHUB_REPO = "Rugved626/ci-cd-demo"
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-GEMINI_KEY = os.getenv("GEMINI_API_KEY")
+log = os.environ.get("CI_LOG", "No CI logs found")
 
-def get_latest_run():
-    url = f"https://api.github.com/repos/{GITHUB_REPO}/actions/runs"
-    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
-    r = requests.get(url, headers=headers)
-    data = r.json()
-    return data["workflow_runs"][0]["id"]
+prompt = f"""
+You are a senior DevOps engineer.
+Explain the following CI failure in simple English and give a fix:
 
-def get_logs(run_id):
-    url = f"https://api.github.com/repos/{GITHUB_REPO}/actions/runs/{run_id}/logs"
-    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
-    r = requests.get(url, headers=headers)
-    return r.text
-
-def explain_error(logs):
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={GEMINI_KEY}"
-    
-    payload = {
-        "contents": [{
-            "parts": [{
-                "text": f"""
-You are a DevOps AI agent.
-Explain this CI failure and suggest fix:
-
-{logs[:2000]}
+{log}
 """
-            }]
-        }]
+
+response = requests.post(
+    "https://openrouter.ai/api/v1/chat/completions",
+    headers={
+        "Authorization": f"Bearer {os.environ['OPENROUTER_API_KEY']}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://github.com",
+        "X-Title": "CI Debug Agent"
+    },
+    json={
+        "model": "mistralai/mistral-7b-instruct",
+        "messages": [{"role": "user", "content": prompt}]
     }
+)
 
-    r = requests.post(url, json=payload)
-    return r.json()["candidates"][0]["content"]["parts"][0]["text"]
-
-if __name__ == "__main__":
-    print("Fetching CI run...")
-    run_id = get_latest_run()
-    print("Run ID:", run_id)
-
-    print("Fetching logs...")
-    logs = get_logs(run_id)
-
-    print("Sending to Gemini...")
-    explanation = explain_error(logs)
-
-    print("\n=== AI Explanation ===\n")
-    print(explanation)
+print("\n🤖 AI DEBUG REPORT:\n")
+print(response.json()["choices"][0]["message"]["content"])
